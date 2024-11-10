@@ -72,11 +72,17 @@ def generate_data(N, mu, beta0, beta1, sigma2, S):
 
     # TODO 9: Return data needed for further analysis, including slopes and intercepts
     # Calculate proportions of slopes and intercepts more extreme than observed
-    slope_diff = abs(slope - beta1)
-    intercept_diff = abs(intercept - beta0)
 
-    slope_more_extreme = np.sum(np.abs(np.array(slopes) - beta1) >= slope_diff) / S
-    intercept_extreme = np.sum(np.abs(np.array(intercepts) - beta0) >= intercept_diff) / S
+
+    # Below code is already provided
+    # Calculate proportions of more extreme slopes and intercepts
+    # For slopes, we will count how many are greater than the initial slope; for intercepts, count how many are less.
+    
+    # slope_more_extreme = sum(s > slope for s in slopes) / S  # Already provided
+    # intercept_more_extreme = sum(i < intercept for i in intercepts) / S  # Already provided
+
+    slope_more_extreme = np.sum(np.abs(np.array(slopes) - beta1) >= abs(slope - beta1)) / S
+    intercept_extreme = np.sum(np.abs(np.array(intercepts) - beta0) >= abs(intercept - beta0)) / S
 
     # Return data needed for further analysis
     return (
@@ -188,7 +194,7 @@ def hypothesis_test():
     elif test_type == "<":
         p_value = np.sum(simulated_stats <= observed_stat) / S
     elif test_type == "!=":
-        p_value = np.sum(np.abs(simulated_stats - hypothesized_value) >= abs(observed_stat - hypothesized_value)) / S
+        p_value = np.sum(abs(simulated_stats - hypothesized_value) >= abs(observed_stat - hypothesized_value)) / S
 
     # TODO 11: If p_value is very small (e.g., <= 0.0001), set fun_message to a fun message
     fun_message = ""
@@ -199,8 +205,8 @@ def hypothesis_test():
     plot3_path = "static/plot3.png"
     plt.figure(figsize=(10, 6))
     plt.hist(simulated_stats, bins=20, alpha=0.5, color="blue")
-    plt.axvline(observed_stat, color='red', linewidth=3, label=f'Observed {parameter.capitalize()} = {observed_stat}')
-    plt.axvline(hypothesized_value, color='green', linestyle='--', linewidth=3, label=f'Hypothesized {parameter.capitalize()} = {hypothesized_value}')
+    plt.axvline(observed_stat, color='red', linewidth=2, label=f'Observed {parameter.capitalize()} = {observed_stat:.1f}')
+    plt.axvline(hypothesized_value, color='green', linestyle='--', linewidth=2, label=f'Hypothesized {parameter.capitalize()} = {hypothesized_value:.1f}')
     plt.xlabel(f'{parameter.capitalize()} Estimates')
     plt.ylabel('Frequency')
     plt.title(f'Histogram of Simulated {parameter.capitalize()}s')
@@ -261,9 +267,8 @@ def confidence_interval():
 
     # Calculate confidence interval for the parameter estimate using the t-distribution
     alpha = 1 - confidence_level
-    df = N - 2
-    t_critical = stats.t.ppf(1 - alpha / 2, df)
-    margin_of_error = t_critical * (std_estimate / np.sqrt(N))
+    t_critical = stats.t.ppf(1 - alpha/2, df=S-1)
+    margin_of_error = t_critical * (std_estimate / np.sqrt(S))
     ci_lower = mean_estimate - margin_of_error
     ci_upper = mean_estimate + margin_of_error
 
@@ -285,7 +290,7 @@ def confidence_interval():
     plt.plot(mean_estimate, y_value, 'o', color='black', label='Mean Estimate')
 
     # Plot the true parameter value as a dashed vertical line
-    plt.axvline(x=true_param, color='green', linewidth=3, linestyle='--', label=f"True {parameter.capitalize()}")
+    plt.axvline(x=true_param, color='green', linewidth=2, linestyle='--', label=f"True {parameter.capitalize()}")
 
     # Customize the plot
     plt.yticks([])  # Hide y-axis ticks as all points are on y=0
